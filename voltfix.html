@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="sk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VoltFix – simulácia stavby batérie</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e3e7ee;--pan:#f6f8fb;--edge:#b9c1ce;--ink:#1a2130;--mut:#566074;--cu:#d4601a;--cy:#0a88b0;--ok:#12905a;--bad:#d02d47;--sh:rgba(40,55,80,.3);--in:#dde2ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1016;--pan:#1a202b;--edge:#06080b;--ink:#e8ecf4;--mut:#8e99ae;--cu:#ff8a3d;--cy:#3cc9f2;--ok:#3ddc97;--bad:#ff5572;--sh:rgba(0,0,0,.65);--in:#10141b}}
+:root[data-theme=dark]{--bg:#0d1016;--pan:#1a202b;--edge:#06080b;--ink:#e8ecf4;--mut:#8e99ae;--cu:#ff8a3d;--cy:#3cc9f2;--ok:#3ddc97;--bad:#ff5572;--sh:rgba(0,0,0,.65);--in:#10141b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.45 'Chakra Petch',system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+.wrap{max-width:900px;margin:0 auto;padding:14px 14px 40px}h2{margin:0 0 12px;font-size:18px}h3{margin:18px 0 6px}p{margin:8px 0}
+.slab{background:var(--pan);border-radius:18px;padding:16px;margin-bottom:24px;box-shadow:inset 0 1px 0 #ffffff40,0 7px 0 var(--edge),0 18px 26px var(--sh)}
+.hd{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}.lg{display:flex;gap:10px;align-items:center}.lg h1{margin:0;font-size:21px}.lg small{color:var(--mut)}
+.logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:linear-gradient(var(--cu),#8a3a0c);box-shadow:0 4px 0 #5a2406,0 8px 12px var(--sh)}
+.chip{background:var(--in);border-radius:12px;padding:5px 11px;box-shadow:inset 0 2px 5px var(--sh)}
+.btn{--c:var(--cu);font:inherit;font-weight:700;border:0;border-radius:12px;padding:10px 14px;color:#fff;cursor:pointer;touch-action:manipulation;background:linear-gradient(var(--c),color-mix(in srgb,var(--c) 78%,#000));box-shadow:0 5px 0 color-mix(in srgb,var(--c) 50%,#000),0 10px 14px var(--sh);transition:transform .08s,box-shadow .08s;text-align:left}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 50%,#000),0 2px 4px var(--sh)}
+.btn:disabled{opacity:.4;pointer-events:none}.btn.s{--c:var(--cy)}.btn.g{--c:var(--ok)}.btn.r{--c:var(--bad)}.btn.q{--c:var(--edge);color:var(--ink);background:var(--in)}
+.bt{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 6px}.gl{display:flex;flex-direction:column;gap:12px}
+.rail{display:flex;gap:8px;overflow-x:auto;padding:2px 4px 14px;margin-bottom:6px}.stp{white-space:nowrap;padding:6px 12px;border-radius:12px;background:var(--in);color:var(--mut);box-shadow:inset 0 2px 5px var(--sh)}.stp.dn{color:var(--ok)}.stp.on{background:var(--cu);color:#fff;box-shadow:0 4px 0 #0004,0 8px 12px var(--sh)}
+.ins{border-left:5px solid var(--cy)}.fb{white-space:pre-line;border-radius:12px;padding:10px 12px;margin-bottom:20px;box-shadow:0 5px 0 var(--edge)}
+.fb.e{background:var(--bad);color:#fff}.fb.o{background:var(--ok);color:#fff}.fb.w{background:#e6a817;color:#1a1400}.fb.i{background:var(--cy);color:#fff}[hidden]{display:none!important}
+.pn{animation:rise .35s}@keyframes rise{from{opacity:0;transform:perspective(900px) rotateX(10deg) translateY(14px)}}
+.pile{display:grid;grid-template-columns:repeat(6,1fr);gap:10px 8px;margin:6px 0 14px}.chs{display:flex;flex-wrap:wrap;gap:8px;min-height:50px}
+.pc{position:relative;border:0;padding:16px 4px 6px;min-width:44px;font:600 11px/1.25 'Share Tech Mono',monospace;color:#fff;cursor:pointer;border-radius:0 0 40% 40%/0 0 10px 10px;background:linear-gradient(90deg,#123f68,#2a8fd6 35%,#6fb8ee 50%,#2a8fd6 65%,#123f68);box-shadow:0 8px 8px var(--sh);transition:transform .12s}
+.pc:before{content:"";position:absolute;left:0;right:0;top:0;height:14px;border-radius:50%;background:radial-gradient(#f0f3f8,#8793a4)}
+.pc.sel{transform:translateY(-6px)}.pc.sel:before{box-shadow:0 0 0 2px var(--cu)}.pc.in{filter:hue-rotate(-70deg)}.pc.out{opacity:.35;filter:grayscale(1)}
+.lcd{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#07130c;color:#5dffa0;border-radius:14px;padding:12px;font:24px 'Share Tech Mono',monospace;text-shadow:0 0 9px #3dff8a88;box-shadow:inset 0 5px 16px #000}.lcd small{display:block;font:12px 'Chakra Petch';color:#3fae72;text-shadow:none}
+.grs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}.gc{background:var(--in);border-radius:12px;padding:8px;min-height:92px;box-shadow:inset 0 2px 6px var(--sh);display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}.gc.cur{outline:2px solid var(--cu)}.gc b,.gc div{width:100%;font-size:13px}
+.okc{color:var(--ok)}.wc{color:#c98a00}.bc{color:var(--bad)}.ori{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.ori .btn{text-align:center;padding:10px 2px}
+.wd{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.wd i{font-style:normal;padding:4px 9px;border-radius:10px;background:var(--in);box-shadow:inset 0 2px 4px var(--sh)}
+.ctl{display:flex;flex-direction:column;gap:10px}.row{display:flex;justify-content:space-between;gap:10px}input[type=range]{width:100%;accent-color:var(--cu)}
+.bar{height:16px;border-radius:9px;background:var(--in);box-shadow:inset 0 2px 5px var(--sh);overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--cy))}
+.cv{width:100%;height:auto;background:var(--in);border-radius:12px;box-shadow:inset 0 4px 10px var(--sh)}
+.cert{background:var(--in);border-radius:14px;padding:14px;border:2px dashed var(--edge)}.cert .row{border-bottom:1px solid var(--edge);padding:6px 0}
+.stamp{width:110px;height:110px;border:4px solid var(--ok);color:var(--ok);border-radius:50%;display:grid;place-items:center;text-align:center;font-weight:700;font-size:12px;transform:rotate(-12deg);margin:14px 0 0 auto}.stamp.no{border-color:var(--bad);color:var(--bad)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><div class="wrap">
+<header class="slab hd"><div class="lg"><div class="logo">⚡</div><div><h1>VoltFix</h1><small id="sub"></small></div></div>
+<div style="display:flex;gap:10px;align-items:center"><span class="chip">🎓 Skóre <b id="sc">100</b></span><button class="btn r" id="rt" onclick="rst()">🗑</button></div></header>
+<div class="rail" id="rail"></div>
+<div class="slab ins" id="ins"></div><div class="fb" id="fb" hidden></div>
+<section class="slab pn" id="stage"></section></div>
+<script>
+const $=id=>document.getElementById(id),KEY="voltfix_v5",R=(a,b)=>a+Math.random()*(b-a),shf=a=>[...a].sort(()=>Math.random()-.5);
+const NM=["Bezpečnosť","Príjem článkov","Párovanie","Polarita","Zváranie","BMS","Skúšky","Odovzdanie"];
+const IN=["<b>Prečo:</b> lítiové články môžu pri skrate alebo prehriatí vzplanúť. Skôr než sa dotkneš prvého článku, priprav pracovisko. Vyber správne položky.",
+"<b>Úloha:</b> pre {cfg} ({Z}) potrebuješ {N} článkov z {T}. Každý zmeraj (napätie a vnútorný odpor 4-vodičovo), skontroluj obal. Kapacitu odhalí iba vybíjací test. Chybné články vyraď.",
+"<b>Fyzika:</b> články spojené paralelne sa vyrovnávajú prúdom I = ΔU / R. Čím väčší rozdiel napätia, tým väčší prúd. Páruj články s rozdielom do 50 mV.",
+"<b>Princíp:</b> v sérii sa napätia sčítavajú ({S} × {nv} V = {V} V), v paralele kapacity ({P} × {c} Ah = {A} Ah). Plus jednej skupiny sa spája s mínusom ďalšej.{ctip}",
+"<b>Technika:</b> nikel 0,15 mm: málo energie = studený zvar, veľa = prepálenie a prehriatie článku. Najprv testuj na odpade a odtrhni pásik. Dobrý zvar vytrhne kúsok niklu.{tip}",
+"<b>Postup:</b> BMS pripájaj v pevnom poradí: B−, potom B1 až B{S}. Pri každom vývode vidíš napätie proti B−.{btip}",
+"<b>Overenie:</b> zmeraj skupiny, nabi balík (CC/CV do {VM} V) a vybi konštantným prúdom. Najslabšia skupina určuje kapacitu celej batérie.",
+"<b>Záver:</b> PVC obal zmršti teplovzdušnou pištoľou (150–200 °C). Potom vidíš vyhodnotenie celej zákazky."];
+const nc=x=>(41.6-4.2*x-10*Math.pow(x,8))/10;
+const CELL=[{n:"Samsung 30Q",cap:3000,nv:3.7,fv:4.2,vr:[3.6,3.75],dd:2.5,ir:[13,19],irb:30,lo:2.7,hi:4.3,cv:nc},
+{n:"Samsung 25R",cap:2500,nv:3.7,fv:4.2,vr:[3.6,3.75],dd:2.5,ir:[14,20],irb:30,lo:2.7,hi:4.3,cv:nc},
+{n:"Samsung 35E",cap:3500,nv:3.7,fv:4.2,vr:[3.6,3.75],dd:2.5,ir:[17,25],irb:36,lo:2.7,hi:4.3,cv:nc},
+{n:"LiFePO4 26650",cap:3000,nv:3.2,fv:3.65,vr:[3.25,3.35],dd:2,ir:[10,16],irb:24,lo:2.4,hi:3.5,lfp:1,cv:x=>3.4-.15*x-Math.pow(x,20)}];
+const CAT=[{i:"🚲",n:"E-bike 36 V",z:0,s:10,p:3},{i:"🛴",n:"Elektrická kolobežka",z:1,s:13,p:2},{i:"🚴",n:"E-bike výkonný",z:2,s:13,p:3},{i:"🛹",n:"Hoverboard",z:1,s:10,p:2},{i:"🔧",n:"Aku náradie",z:0,s:5,p:2},{i:"🔌",n:"Záložný zdroj Li-ion",z:0,s:3,p:6},{i:"⚡",n:"E-bike 52 V (pokročilé)",z:0,s:14,p:4},{i:"☀️",n:"Záložný zdroj LiFePO4",z:3,s:4,p:4},{i:"🛵",n:"E-bike LiFePO4",z:3,s:12,p:3}];
+CAT.forEach(c=>{const z=CELL[c.z];c.d=(c.s*z.nv).toFixed(1).replace(".0","")+" V · "+c.s+"S"+c.p+"P · "+(c.p*z.cap/1000).toFixed(1).replace(".0","")+" Ah · "+z.n});
+let S;const Q=()=>CAT[S.cat],ZC=()=>CELL[Q().z],NS=()=>Q().s,NP=()=>Q().p,N=()=>NS()*NP();
+const X=()=>({cfg:NS()+"S"+NP()+"P",N:N(),T:S.pile.length,S:NS(),P:NP(),V:(NS()*ZC().nv).toFixed(1),A:(NP()*ZC().cap/1000).toFixed(1),nv:ZC().nv,c:ZC().cap/1000,Z:ZC().n,VM:(NS()*ZC().fv).toFixed(2),ctip:ZC().lfp?"<br><b>LiFePO4:</b> nominálne 3,2 V na článok, nabíjanie do 3,65 V. Li-ion nabíjačka a BMS by ho preťažili.":"",btip:ZC().lfp?"<br><b>LiFePO4:</b> krivka je takmer plochá, napätie takmer nevypovedá o nabití. Potrebuješ BMS určený pre LiFePO4.":"",tip:NP()<3?"<br><b>Pozor:</b> málo článkov v paralele = každý nesie väčší prúd, preto sú párovanie a zvary ešte dôležitejšie.":NP()>3?"<br><b>Pozor:</b> veľa článkov v paralele = jeden chybný článok sa ťažko nájde, preto meraj každý.":""});
+function mk(){const c=[],T=N()+6,Z=ZC();for(let i=0;i<T;i++)c.push({id:i+1,v:+R(...Z.vr).toFixed(3),ir:+R(...Z.ir).toFixed(1),cap:Math.round(R(Z.cap*.967,Z.cap*1.017)),w:0});
+ const o=shf([...Array(T).keys()]);o.slice(0,2).forEach(i=>c[i].v=+R(Z.dd-.6,Z.dd-.1).toFixed(3));o.slice(2,4).forEach(i=>c[i].ir=+R(Z.irb*1.2,Z.irb*1.6).toFixed(1));c[o[4]].w=1;c[o[5]].cap=Math.round(R(Z.cap*.67,Z.cap*.77));return c}
+const fresh=()=>({st:0,cat:null,pile:[],m:[],k:[],sel:1,pk:[],rj:[],safe:[],gr:[],ori:[],w:{p:25,k:8.5},wt:0,wq:[],bw:0,bo:[],t:{a:0,b:0,c:null},sh:0,tp:180,pen:[],fb:null});
+function load(){S=fresh();try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.pile&&CAT[s.cat]&&s.gr&&s.gr.length==CAT[s.cat].s)S=Object.assign(S,s)}catch(e){}S.t.b=S.t.b==100?100:0}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let AC;function beep(f=880,ty="sine",d=.1,v=.1){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
+const C=id=>S.pile[id-1],score=()=>Math.max(0,100-S.pen.reduce((a,p)=>a+p[0],0)),nm=i=>i?"B"+i:"B−";
+function pen(n,m){S.pen.push([n,m]);S.fb=[(S.fb&&S.fb[1]=="e"?S.fb[0]+"\n":"")+"−"+n+" b · "+m,"e"];beep(150,"sawtooth",.25)}
+function say(m,k){S.fb=[m,k]}
+function go(n,k){S.st=n;if(!k)S.fb=null;render();const s=$("stage");s.classList.remove("pn");void s.offsetWidth;s.classList.add("pn");window.scrollTo(0,0)}
+function gi(ids){const a=ids.map(C),vs=a.map(x=>x.v),dv=Math.max(...vs)-Math.min(...vs),im=a.reduce((s,x)=>s+x.ir,0)/a.length;return{v:vs.reduce((s,x)=>s+x,0)/a.length,dv,ir:1/a.reduce((s,x)=>s+1/x.ir,0),cap:a.reduce((s,x)=>s+x.cap,0),I:dv/(2*im/1000)}}
+const wE=()=>S.w.p*S.w.k*.67,wQ=()=>Math.max(5,Math.round(100-Math.abs(wE()-142)*.8)),fv=x=>41.6-4.2*x-10*Math.pow(x,8);
+function pickCat(c){S.cat=c;S.pile=mk();S.gr=Array.from({length:NS()},()=>[]);S.ori=Array.from({length:NS()},()=>Math.random()<.5?1:0);S.bo=shf([...Array(NS()+1).keys()]);render()}
+/* 0 */
+const SF=["Ochranné okuliare","Hasiaci prístroj a nádoba s pieskom","Zložené kovové šperky a hodinky","Izolované náradie","Pracovať na mokrom stole","Články odložené vedľa horľavín (papier, lak)"];
+function tg(i){const a=S.safe,x=a.indexOf(i);x<0?a.push(i):a.splice(x,1);render()}
+function chk0(){S.fb=null;const ms=[0,1,2,3].filter(i=>!S.safe.includes(i)),wr=[4,5].filter(i=>S.safe.includes(i));
+ if(ms.length||wr.length){pen(3*(ms.length+wr.length),(ms.length?"Chýba: "+ms.map(i=>SF[i]).join(", ")+". ":"")+(wr.length?"Nesprávne: "+wr.map(i=>SF[i]).join(", ")+" – vlhkosť a horľaviny zvyšujú riziko skratu a požiaru.":""));render()}else go(1)}
+/* 1 */
+function mea(){if(!S.m.includes(S.sel))S.m.push(S.sel);beep(1100,"sine",.05);render()}
+function capt(){if(!S.k.includes(S.sel))S.k.push(S.sel);beep(700,"sine",.1);render()}
+function use(){const id=S.sel;if(S.pk.includes(id))return;if(S.pk.length>=N()){say("Už máš "+N()+" článkov. Niektorý najprv vyraď.","w");return render()}S.pk.push(id);S.rj=S.rj.filter(x=>x!=id);render()}
+function rej(){const id=S.sel;S.pk=S.pk.filter(x=>x!=id);if(!S.rj.includes(id))S.rj.push(id);render()}
+function chk1(){S.fb=null;let u=0;S.pk.forEach(id=>{const c=C(id);if(!S.m.includes(id))u++;
+ if(c.v<ZC().dd)pen(10,`Článok #${id} je hlboko vybitý (${c.v.toFixed(2)} V). Pod ${ZC().dd.toFixed(1)} V môže vzniknúť vnútorný skrat – nikdy sa nepoužíva.`);
+ if(c.ir>ZC().irb)pen(6,`Článok #${id} má vysoký odpor (${c.ir} mΩ) – hreje sa a znižuje výkon skupiny.`);
+ if(c.w)pen(8,`Článok #${id} má poškodený obal – riziko skratu cez plášť.`);
+ if(c.cap<ZC().cap*.83)pen(5,`Článok #${id} má len ${c.cap} mAh – najslabšia skupina obmedzí celý balík. Odhalil by ho kapacitný test.`)});
+ if(u)pen(2*u,`Nezmerané články (${u}) – každý článok treba zmerať pred použitím.`);
+ if(!S.fb)say("Výborný výber – všetky vybrané články sú v poriadku. ✔","o");go(2,1)}
+/* 2 */
+function gadd(i){const a=S.gr.findIndex(g=>g.length<NP());if(a>=0)S.gr[a].push(i);render()}
+function grem(i){S.gr=S.gr.map(g=>g.filter(x=>x!=i));render()}
+function auto(){const s=[...S.pk].sort((a,b)=>C(a).v-C(b).v);S.gr=Array.from({length:NS()},(_,n)=>s.slice(n*NP(),n*NP()+NP()));render()}
+function chk2(){S.fb=null;S.gr.forEach((g,n)=>{const x=gi(g),mv=(x.dv*1000).toFixed(0);
+ if(x.dv>=.15)pen(6,`Skupina ${n+1}: ΔU ${mv} mV → vyrovnávací prúd ≈ ${x.I.toFixed(0)} A pri spojení. Články sa prehrejú a poškodia.`);
+ else if(x.dv>=.05)pen(2,`Skupina ${n+1}: ΔU ${mv} mV (cieľ < 50 mV). Vyrovnaj články pred spojením.`)});
+ if(!S.fb)say("Skupiny sú dobre spárované (ΔU < 50 mV). ✔","o");go(3,1)}
+/* 3 */
+function chk3(){S.fb=null;const b=[];for(let i=0;i<S.ori.length-1;i++)if(S.ori[i]==S.ori[i+1])b.push(`${i+1}–${i+2}`);
+ if(b.length){pen(8,`Skrat: skupiny ${b.join(", ")} sú spojené plus na plus. Nikel by spojil rovnaké póly – prúd stovky ampérov. Obráť orientáciu.`);render()}else{say(`Polarita správna. Séria: ${NS()} × ${ZC().nv} V ≈ ${(NS()*ZC().nv).toFixed(1)} V, paralela: ${NP()} × ${ZC().cap/1000} Ah = ${(NP()*ZC().cap/1000).toFixed(1)} Ah. ✔`,"o");go(4,1)}}
+/* 4 */
+function wup(){const e=$("wv");if(e)e.textContent=`${S.w.p} ms · ${S.w.k} kg · ${Math.round(wE())} J`}
+function wtest(){const q=wQ(),e=wE();beep(90,"sawtooth",.18,.2);
+ if(q>=85){S.wt++;say("Odtrhnutie: pásik sa trhá a vytrhne kúsok niklu – zvar je správny. ✔","o")}else if(e<142)say("Odtrhnutie: pásik sa odlepí bez stopy → studený zvar. Zvýš pulz alebo prítlak.","w");else say("Odtrhnutie: v pásiku je diera, nikel je prepálený → zníž energiu.","w");render()}
+function wgrp(){S.fb=null;const q=wQ(),e=wE(),n=S.wq.length+1;S.wq.push(q);beep(90,"sawtooth",.18,.2);beep(1800,"square",.05,.08);
+ if(e>190)pen(6,`Skupina ${n}: príliš veľká energia (${Math.round(e)} J) – prehriatie článkov a prepálenie pásika.`);
+ else if(q<85)pen(q<50?4:2,`Skupina ${n}: ${q<50?"slabý":"priemerný"} zvar (${q} %) – vyšší odpor spoja, hrejenie pri záťaži.`);
+ else say(`Skupina ${n}: zvar ${q} % ✔`,"o");render()}
+function chk4(){S.fb=null;say(`Zvary hotové, priemerná kvalita ${Math.round(S.wq.reduce((a,b)=>a+b,0)/NS())} %.`,"i");go(5,1)}
+/* 5 */
+function wire(i){S.fb=null;if(i==S.bw){const v=S.gr.slice(0,i).reduce((s,g)=>s+gi(g).v,0);say(`${nm(i)}: ${v.toFixed(2)} V proti B− ✔`,"o");S.bw++;beep(900,"sine",.05)}
+ else pen(5,`Zlé poradie (${nm(i)} namiesto ${nm(S.bw)}). Vývody sa pripájajú od B− postupne; skokové napätie môže zničiť balancér BMS.`);render()}
+/* 6 */
+let ci=0;
+function tA(){S.t.a=1;render()}
+function tB(){if(ci||S.t.b)return;S.t.b=1;ci=setInterval(()=>{S.t.b=Math.min(100,S.t.b+5);if(S.t.b>=100){clearInterval(ci);ci=0;say(`Nabíjanie CC/CV dokončené (${(NS()*ZC().fv).toFixed(1)} V). BMS vyrovnal skupiny. ✔`,"o");render()}else $("chb").style.width=S.t.b+"%"},150);render()}
+function tC(){S.fb=null;const gs=S.gr.map(gi),wk=S.wq.findIndex(q=>q<50);
+ if(wk>=0){S.t.c={fail:`Skupina ${wk+1}: slabý zvar sa pri 5 A prehrial a kontakt vypadol. Zvary sa musia robiť správne.`};pen(8,S.t.c.fail)}
+ else{const cap=Math.min(...gs.map(g=>g.cap))/1000*.99,ir=gs.reduce((s,g)=>s+g.ir,0)+S.wq.reduce((s,q)=>s+(100-q)/100*3,0);S.t.c={cap,ir,sag:5*ir/1000,soh:cap/(NP()*ZC().cap/1000)*100}}render()}
+/* 7 */
+let hT=0,hS=0;const stopH=()=>clearInterval(hT);
+document.addEventListener("pointerdown",e=>{if(!e.target.closest("#hb"))return;e.preventDefault();stopH();hS=0;beep(200,"sawtooth",.3,.05);hT=setInterval(()=>{const T=+$("tp").value;S.sh=Math.min(100,S.sh+Math.max(0,T-60)/100);
+ if(T>280&&++hS>15){S.sh=0;stopH();pen(6,"Prehriatie obalu (> 280 °C): PVC sa pretavilo a poškodilo články. Pracuj do 200 °C.");render();return}
+ $("shb").style.width=S.sh+"%";if(S.sh>=100){stopH();render()}},80)});
+["pointerup","pointercancel"].forEach(v=>document.addEventListener(v,stopH));
+function nj(){S=fresh();save();go(0)}
+let rq=0;function rst(){const b=$("rt");if(!rq){rq=1;b.textContent="Naozaj?";setTimeout(()=>{rq=0;b.textContent="🗑"},3000);return}rq=0;b.textContent="🗑";nj()}
+/* views */
+const V=[
+()=>S.cat==null?`<h2>Vyber typ zákazky</h2><div class="gl">${CAT.map((c,i)=>`<button class="btn s" onclick="pickCat(${i})">${c.i} ${c.n}<br><small>${c.d}</small></button>`).join("")}</div>`:`<h2>1 · Príprava pracoviska</h2><div class="gl">${SF.map((s,i)=>`<button class="btn ${S.safe.includes(i)?"g":"q"}" onclick="tg(${i})">${S.safe.includes(i)?"☑":"☐"} ${s}</button>`).join("")}</div><div class="bt"><button class="btn" onclick="chk0()">Začať prácu</button></div>`,
+()=>{const c=C(S.sel),m=S.m.includes(c.id),k=S.k.includes(c.id);return `<h2>2 · Príjem a triedenie · ${S.pk.length}/${N()}</h2><div class="pile">${S.pile.map(x=>`<button class="pc${x.id==S.sel?" sel":""}${S.pk.includes(x.id)?" in":""}${S.rj.includes(x.id)?" out":""}" onclick="S.sel=${x.id};render()">#${x.id}<br>${S.m.includes(x.id)?x.v.toFixed(2):"?"}</button>`).join("")}</div>
+<div class="lcd"><div><small>Napätie</small>${m?c.v.toFixed(3):"–"} V</div><div><small>Vnútorný odpor</small>${m?c.ir.toFixed(1):"–"} mΩ</div></div>
+<p>Článok #${c.id} · obal: ${m?c.w?"⚠ preliačený":"v poriadku":"nezmeraný"} · kapacita: ${k?c.cap+" mAh":"nezistená"}</p>
+<div class="bt"><button class="btn s" onclick="mea()">📟 Zmerať</button><button class="btn" onclick="capt()">🔋 Kapacita</button><button class="btn g" onclick="use()">✓ Použiť</button><button class="btn r" onclick="rej()">✕ Vyradiť</button></div>
+<div class="bt"><button class="btn g" ${S.pk.length==N()?"":"disabled"} onclick="chk1()">Pokračovať</button></div>`},
+()=>{const u=S.gr.flat(),pool=S.pk.filter(i=>!u.includes(i)),a=S.gr.findIndex(g=>g.length<NP());return `<h2>3 · Párovanie do skupín (${NP()}P)</h2>
+<div class="bt"><button class="btn s" onclick="auto()">Auto podľa napätia</button><button class="btn q" onclick="S.gr=S.gr.map(()=>[]);render()">Vyčistiť</button></div>
+<p>Voľné články – ťukni a pridajú sa do skupiny ${a+1}:</p><div class="chs">${pool.map(i=>`<button class="pc" onclick="gadd(${i})">#${i}<br>${C(i).v.toFixed(2)}</button>`).join("")||"–"}</div>
+<div class="grs">${S.gr.map((g,n)=>{const x=g.length==NP()?gi(g):null;return `<div class="gc${n==a?" cur":""}"><b>Skupina ${n+1}</b>${g.map(i=>`<button class="pc" onclick="grem(${i})">#${i}</button>`).join("")}${x?`<div class="${x.dv<.05?"okc":x.dv<.15?"wc":"bc"}">ΔU ${(x.dv*1000).toFixed(0)} mV · ${x.I.toFixed(1)} A</div>`:""}</div>`}).join("")}</div>
+<div class="bt"><button class="btn g" ${u.length==N()?"":"disabled"} onclick="chk2()">Spojiť skupiny</button></div>`},
+()=>`<h2>4 · Polarita a sériové radenie</h2><p>Otáčaj skupiny ťuknutím, kým sa orientácia nestrieda (zig-zag).</p><div class="ori">${S.ori.map((o,i)=>`<button class="btn q" onclick="S.ori[${i}]^=1;render()">${i+1}<br>${o?"▲ +":"▲ −"}</button>`).join("")}</div><div class="bt"><button class="btn g" onclick="chk3()">Prepojiť niklom</button></div>`,
+()=>{const n=S.wq.length;return `<h2>5 · Bodové zváranie · Proton PRO</h2><div class="ctl"><div class="row"><span>Pulz · prítlak · energia</span><b id="wv"></b></div><input type="range" min="5" max="60" value="${S.w.p}" oninput="S.w.p=+this.value;wup()"><input type="range" min="1" max="15" step=".5" value="${S.w.k}" oninput="S.w.k=+this.value;wup()"></div>
+<div class="bt"><button class="btn s" onclick="wtest()">🧪 Skúšobný zvar (${S.wt}/2)</button><button class="btn" ${S.wt>=2&&n<NS()?"":"disabled"} onclick="wgrp()">⚡ Zvárať skupinu ${Math.min(n+1,NS())}</button></div>
+<div class="wd">${S.wq.map(q=>`<i class="${q>=85?"okc":q>=50?"wc":"bc"}">${q}%</i>`).join("")}</div><div class="bt"><button class="btn g" ${n==NS()?"":"disabled"} onclick="chk4()">Pokračovať</button></div>`},
+()=>`<h2>6 · Pripojenie BMS · ${S.bw}/${NS()+1}</h2><p>Ťukaj vývody v správnom poradí.</p><div class="bt">${S.bo.map(i=>`<button class="btn ${i<S.bw?"g":"q"}" ${i<S.bw?"disabled":""} onclick="wire(${i})">${nm(i)}</button>`).join("")}</div><div class="bt"><button class="btn g" ${S.bw==NS()+1?"":"disabled"} onclick="go(6)">Pokračovať</button></div>`,
+()=>{const t=S.t,vs=S.gr.map(g=>gi(g).v),sp=Math.max(...vs)-Math.min(...vs),c=t.c;
+ const pts=c&&!c.fail?Array.from({length:41},(_,i)=>(10+i*7)+","+(110-(ZC().cv(i/40*.99)-c.sag/NS()-ZC().lo)/(ZC().hi-ZC().lo)*100)).join(" "):"";
+ return `<h2>7 · Skúšky hotového balíka</h2><div class="bt"><button class="btn s" onclick="tA()">1 · Zmerať skupiny</button><button class="btn" ${t.a?"":"disabled"} onclick="tB()">2 · Nabíjať ${(NS()*ZC().fv).toFixed(1)} V</button><button class="btn" style="--c:#8b5cf6" ${t.b==100?"":"disabled"} onclick="tC()">3 · Vybiť 5 A</button></div>
+${t.a?`<p>Skupiny: ${vs.map(v=>v.toFixed(2)).join(" · ")} V<br>Súčet ${vs.reduce((a,b)=>a+b,0).toFixed(1)} V · rozptyl ${(sp*1000).toFixed(0)} mV</p>`:""}
+${t.b?`<div class="bar"><i id="chb" style="width:${t.b}%"></i></div>`:""}
+${c?c.fail?`<p class="bc">${c.fail}</p>`:`<svg viewBox="0 0 300 120" class="cv"><polyline fill="none" stroke="var(--cy)" stroke-width="3" points="${pts}"/></svg><p>Kapacita <b>${c.cap.toFixed(2)} Ah</b> (nominál ${(NP()*ZC().cap/1000).toFixed(1)}) · SOH ${c.soh.toFixed(0)} %<br>Odpor balíka ${c.ir.toFixed(0)} mΩ · pokles pri 5 A ${c.sag.toFixed(2)} V</p>`:""}
+<div class="bt"><button class="btn g" ${c?"":"disabled"} onclick="go(7)">Pokračovať</button></div>`},
+()=>{if(S.sh<100)return `<h2>8 · Zmrštenie PVC obalu</h2><p>Teplota: <b id="tv">${S.tp} °C</b></p><input id="tp" type="range" min="100" max="350" step="10" value="${S.tp}" oninput="S.tp=+this.value;$('tv').textContent=S.tp+' °C'"><div class="bar"><i id="shb" style="width:${S.sh}%"></i></div><div class="bt"><button class="btn" id="hb" style="touch-action:none">🔥 Drž a zmršťuj</button></div>`;
+ const sc=score(),c=S.t.c||{},f=!!c.fail||!(c.cap>=.89*NP()*ZC().cap/1000)||sc<60,g=sc>=90?"A":sc>=75?"B":sc>=60?"C":"D";
+ return `<h2>Vyhodnotenie zákazky</h2><div class="cert"><div class="row"><span>Zákazka</span><b>${Q().n} · ${Q().d}</b></div><div class="row"><b>Skóre</b><b>${sc} / 100 · známka ${g}</b></div><div class="row"><span>Kapacita</span><b>${c.cap?c.cap.toFixed(2)+" Ah":"–"}</b></div><div class="row"><span>Odpor balíka</span><b>${c.ir?c.ir.toFixed(0)+" mΩ":"–"}</b></div><div class="stamp${f?" no":""}">${f?"NEVYHOVUJE":"VYHOVUJE"}</div></div>
+<h3>Chyby a poučenie</h3>${S.pen.length?S.pen.map(p=>`<p class="bc">−${p[0]} · ${p[1]}</p>`).join(""):'<p class="okc">Bez chyby – ukážková práca.</p>'}<div class="bt"><button class="btn" onclick="nj()">Nová zákazka</button></div>`}];
+function render(){$("sc").textContent=score();
+ $("rail").innerHTML=NM.map((n,i)=>`<span class="stp ${i<S.st?"dn":i==S.st?"on":""}">${i<S.st?"✓":i+1} ${n}</span>`).join("");
+ $("ins").innerHTML=S.cat==null?"<b>Zákazka:</b> vyber, akú batériu budeš stavať. Líšia sa počtom článkov, napätím aj nárokmi.":IN[S.st].replace(/\{(\w+)\}/g,(m,k)=>X()[k]);$("sub").textContent=S.cat==null?"Vyber typ zákazky":Q().n+" · "+Q().d;const f=$("fb");f.hidden=!S.fb;if(S.fb){f.className="fb "+S.fb[1];f.textContent=S.fb[0]}
+ $("stage").innerHTML=V[S.st]();if(S.st==4)wup();save()}
+load();render();
+</script></body></html>
